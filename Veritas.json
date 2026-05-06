@@ -1,0 +1,710 @@
+{
+  "name": "Veritas",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "AI Study Assistant",
+        "formDescription": "Submit your lecture notes or a topic. We'll fact-check the content first, then generate trustworthy study material.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email address",
+              "fieldType": "email",
+              "placeholder": "your@email.com",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Topic or lecture notes",
+              "fieldType": "textarea",
+              "placeholder": "e.g. Neural Networks, or paste your lecture notes here...",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "What do you want to generate?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Flashcards"
+                  },
+                  {
+                    "option": "Quiz"
+                  },
+                  {
+                    "option": "Summary"
+                  },
+                  {
+                    "option": "All three"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Fact-check & Generate",
+          "customCss": ":root {\n    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n    --font-weight-normal: 400;\n    --font-weight-medium: 500;\n    --font-weight-bold: 700;\n    --font-size-body: 14px;\n    --font-size-header: 28px;\n    --font-size-subheader: 16px;\n    --font-size-label: 13px;\n    --font-size-input: 15px;\n    --color-background: #0F172A;\n    --color-card-bg: #1E293B;\n    --color-card-border: #334155;\n    --brand-primary: #818CF8;\n    --brand-primary-hover: #A5B4FC;\n    --brand-secondary: rgba(129, 140, 248, 0.1);\n    --color-header: #F8FAFC;\n    --color-header-subtext: #94A3B8;\n    --color-label: #CBD5E1;\n    --color-input-text: #F8FAFC;\n    --color-input-bg: #0F172A;\n    --color-input-border: #334155;\n    --color-focus-glow: rgba(129, 140, 248, 0.25);\n    --color-submit-btn-bg: var(--brand-primary);\n    --color-submit-btn-text: #0F172A;\n    --color-error: #FB7185;\n    --color-success: #34D399;\n    --border-radius-card: 20px;\n    --border-radius-input: 12px;\n    --padding-card: 40px;\n    --container-width: 520px;\n    --box-shadow-card: 0 20px 50px rgba(0, 0, 0, 0.3);\n    --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n}\n.n8n-form-card {\n    border: 1px solid var(--color-card-border);\n}\ninput, select, textarea {\n    background-color: var(--color-input-bg) !important;\n    color: var(--color-input-text) !important;\n    border: 1px solid var(--color-input-border) !important;\n    transition: var(--transition-speed);\n}\ninput:focus {\n    border-color: var(--brand-primary) !important;\n    box-shadow: 0 0 0 4px var(--color-focus-glow) !important;\n}\nbutton[type=\"submit\"] {\n    background-color: var(--brand-primary) !important;\n    color: var(--color-submit-btn-text) !important;\n    font-weight: var(--font-weight-bold);\n    border-radius: var(--border-radius-input);\n    padding: 14px;\n    cursor: pointer;\n    transition: var(--transition-speed);\n    border: none;\n}\nbutton[type=\"submit\"]:hover {\n    background-color: var(--brand-primary-hover) !important;\n    transform: translateY(-2px);\n    box-shadow: 0 8px 20px rgba(129, 140, 248, 0.4);\n}"
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -1456,
+        592
+      ],
+      "id": "aff3e1c3-60ea-4f37-b476-20fb440f5dbd",
+      "name": "On form submission",
+      "webhookId": "e2190965-6c89-46ad-b7dd-31a978c71136"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=CLAIM / LECTURE NOTES TEXT:\n{{ $json['Topic or lecture notes'] }}",
+        "options": {
+          "systemMessage": "# Role\nYou are an expert fact-checking AI specialised in verifying academic and educational claims using real-time web search.\n\n# Goal\nAnalyse the provided lecture notes or topic text, identify the core factual assertions, search the web for supporting and contradicting evidence, and return a structured verdict.\n\n# Instructions\n1. Read the input carefully and extract the 1-5 main factual claims being made. If the input is just a topic name (e.g. 'Neural Networks'), return a result with overall_verdict = 'UNVERIFIED', confidence_score = 0, summary = 'Input appears to be a topic name rather than factual claims. No fact-checking required.', claims = [], warning_flags = [].\n2. For EACH claim found, use your search tool to find credible, up-to-date sources (prefer academic journals, government sites, and reputable news outlets).\n3. Evaluate each claim as: TRUE / FALSE / MISLEADING / UNVERIFIED.\n4. Assign an overall confidence score 0-100.\n5. Output MUST be only a valid JSON object — no preamble, no markdown, no text outside the JSON.\n\n# Output format\n{\n  \"overall_verdict\": \"TRUE | FALSE | MISLEADING | UNVERIFIED\",\n  \"confidence_score\": 85,\n  \"has_issues\": false,\n  \"summary\": \"2-3 sentence plain-English explanation of the overall verdict.\",\n  \"claims\": [\n    {\n      \"claim\": \"The specific claim being checked\",\n      \"verdict\": \"TRUE | FALSE | MISLEADING | UNVERIFIED\",\n      \"explanation\": \"1-2 sentence explanation.\",\n      \"sources\": [\"Source name or URL 1\", \"Source name or URL 2\"]\n    }\n  ],\n  \"warning_flags\": [\"List any red flags — or leave as empty array []\"]\n}\n\nSet has_issues to true if ANY claim is FALSE or MISLEADING.\n\n# Today's Date and Time: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1232,
+        592
+      ],
+      "id": "877b5329-2b93-4b96-b8ba-e8fbf7c92bfb",
+      "name": "Fact-Checker Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        -1096,
+        816
+      ],
+      "id": "110c61aa-9504-45a0-ac98-1619ac8dc45c",
+      "name": "SerpApi",
+      "credentials": {
+        "serpApi": {
+          "id": "y4DOnh0OHujGJcJi",
+          "name": "SerpApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-32b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -1224,
+        816
+      ],
+      "id": "e523fc7e-9488-4c90-a649-21b2f06b4e81",
+      "name": "Groq Model (Fact-Check)",
+      "credentials": {
+        "groqApi": {
+          "id": "jl5shFEPCBCcTcbq",
+          "name": "Groq account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the fact-checker raw output\nconst raw = $input.item.json.output || '';\nconst cleaned = raw.replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n\nlet factData;\ntry {\n  factData = JSON.parse(cleaned);\n} catch (e) {\n  factData = {\n    overall_verdict: 'UNVERIFIED',\n    confidence_score: 0,\n    has_issues: false,\n    summary: 'Fact-check could not be parsed. Proceeding with study material generation.',\n    claims: [],\n    warning_flags: []\n  };\n}\n\n// Pass through original form data + parsed fact-check result\nconst formData = $('On form submission').item.json;\n\nreturn [{\n  json: {\n    full_name: formData['Full name'],\n    email_address: formData['Email address'],\n    topic_notes: formData['Topic or lecture notes'],\n    output_type: formData['What do you want to generate?'],\n    fact_check_raw: raw,\n    fact_overall_verdict: factData.overall_verdict,\n    fact_confidence_score: factData.confidence_score,\n    fact_has_issues: factData.has_issues || false,\n    fact_summary: factData.summary,\n    fact_claims: JSON.stringify(factData.claims || []),\n    fact_warning_flags: JSON.stringify(factData.warning_flags || []),\n    fact_data_full: JSON.stringify(factData)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        592
+      ],
+      "id": "608231b6-d2d3-4ed5-b088-8293d728119b",
+      "name": "Parse Fact-Check Result"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['output_type'] }}",
+                    "rightValue": "Flashcards",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "route-flashcards"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Flashcards"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['output_type'] }}",
+                    "rightValue": "Quiz",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "route-quiz"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Quiz"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['output_type'] }}",
+                    "rightValue": "Summary",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "route-summary"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Summary"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['output_type'] }}",
+                    "rightValue": "All three",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "route-all"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "All three"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -656,
+        560
+      ],
+      "id": "345a4735-0ecf-4538-9053-411eb7229d60",
+      "name": "Route by output type"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=TOPIC / LECTURE NOTES:\n{{ $json['topic_notes'] }}\n\nFACT-CHECK CONTEXT (use this to add caveats where needed):\nOverall Verdict: {{ $json['fact_overall_verdict'] }}\nSummary: {{ $json['fact_summary'] }}\nIssues Found: {{ $json['fact_has_issues'] }}\nClaims Detail: {{ $json['fact_claims'] }}\nWarning Flags: {{ $json['fact_warning_flags'] }}",
+        "options": {
+          "systemMessage": "# Role\nYou are an expert study assistant for university students.\n\n# Goal\nGenerate 10 high-quality flashcards from the provided topic or lecture notes.\n\n# Important\nIf the fact-check context shows Issues Found = true, or any claim was rated FALSE or MISLEADING, add a note in the relevant flashcard answer that says '[⚠️ Disputed — verify with primary source]'. Do not invent new facts; only caveat what was flagged.\n\n# Instructions\n1. Read the topic or notes carefully.\n2. Identify the 10 most important concepts, definitions, or facts.\n3. For each one create a question-answer pair.\n4. Output MUST be only a valid JSON object with a single key 'flashcards' containing an array of 10 objects, each with keys 'question' and 'answer'.\n5. No preamble, no markdown, no explanation outside the JSON.\n\n# Today's Date: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -432,
+        96
+      ],
+      "id": "62cf69dd-c4cc-411c-9f2d-86e6da29df65",
+      "name": "Generate Flashcards"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=TOPIC / LECTURE NOTES:\n{{ $json['topic_notes'] }}\n\nFACT-CHECK CONTEXT:\nOverall Verdict: {{ $json['fact_overall_verdict'] }}\nSummary: {{ $json['fact_summary'] }}\nIssues Found: {{ $json['fact_has_issues'] }}\nClaims Detail: {{ $json['fact_claims'] }}\nWarning Flags: {{ $json['fact_warning_flags'] }}",
+        "options": {
+          "systemMessage": "# Role\nYou are an expert study assistant for university students.\n\n# Goal\nGenerate a structured study summary from the provided topic or lecture notes.\n\n# Important\nIf the fact-check context shows Issues Found = true, add a '⚠️ Disputed' tag next to any key concept or takeaway that was rated FALSE or MISLEADING by the fact-checker.\n\n# Instructions\n1. Extract and organise content into a clear summary.\n2. Output MUST be only a valid JSON object with keys:\n   - 'topic': the main topic name as a short string.\n   - 'overview': 2-3 sentence plain-English explanation.\n   - 'key_concepts': array of objects with 'term' and 'definition' (5-8 concepts).\n   - 'key_takeaways': array of 3-5 short bullet-point strings.\n3. No preamble, no markdown, no explanation outside the JSON.\n\n# Today's Date: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -432,
+        688
+      ],
+      "id": "ea2abc34-1426-453a-83a7-51e76f00af58",
+      "name": "Generate Summary"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-32b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        320
+      ],
+      "id": "2045fd03-6424-44f1-a8c7-f90af0719fed",
+      "name": "Groq Model (Study)",
+      "credentials": {
+        "groqApi": {
+          "id": "jl5shFEPCBCcTcbq",
+          "name": "Groq account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ─── Gather inputs ───────────────────────────────────────────────\nconst studyRaw = $input.item.json.output || '';\nconst studyCleaned = studyRaw.replace(/<think>[\\s\\S]*?<\\/think>/gi, '').replace(/```json\\s*/gi, '').replace(/```\\s*/g, '').trim();\n\nlet studyData;\ntry {\n  studyData = JSON.parse(studyCleaned);\n} catch (e) {\n  studyData = { parse_error: true, raw: studyRaw };\n}\n\n// Retrieve fact-check data passed through from Parse Fact-Check Result node\n// We access the fact-check node output stored in the previous step's context\nconst fc = {\n  overall_verdict: $('Parse Fact-Check Result').item.json.fact_overall_verdict || 'UNVERIFIED',\n  confidence_score: $('Parse Fact-Check Result').item.json.fact_confidence_score || 0,\n  has_issues: $('Parse Fact-Check Result').item.json.fact_has_issues || false,\n  summary: $('Parse Fact-Check Result').item.json.fact_summary || '',\n  claims: JSON.parse($('Parse Fact-Check Result').item.json.fact_claims || '[]'),\n  warning_flags: JSON.parse($('Parse Fact-Check Result').item.json.fact_warning_flags || '[]')\n};\n\nconst formData = $('On form submission').item.json;\nconst outputType = formData['What do you want to generate?'];\n\n// ─── Verdict style helpers ────────────────────────────────────────\nconst verdictStyle = {\n  TRUE:       { emoji: '✅', label: 'TRUE',       color: '#22C55E' },\n  FALSE:      { emoji: '❌', label: 'FALSE',      color: '#EF4444' },\n  MISLEADING: { emoji: '⚠️', label: 'MISLEADING', color: '#F59E0B' },\n  UNVERIFIED: { emoji: '❓', label: 'UNVERIFIED', color: '#94A3B8' }\n};\nconst vs = verdictStyle[fc.overall_verdict] || verdictStyle['UNVERIFIED'];\n\n// ─── Confidence bar ───────────────────────────────────────────────\nconst score = fc.confidence_score || 0;\nconst filled = Math.round(score / 5);\nconst bar = '█'.repeat(filled) + '░'.repeat(20 - filled);\n\n// ─── Fact-Check claims HTML ───────────────────────────────────────\nlet claimsHtml = '';\nif (Array.isArray(fc.claims) && fc.claims.length > 0) {\n  fc.claims.forEach((c, i) => {\n    const cvs = verdictStyle[c.verdict] || verdictStyle['UNVERIFIED'];\n    const sourcesHtml = Array.isArray(c.sources) && c.sources.length\n      ? c.sources.map(s => `<li style=\"margin:4px 0;color:#94A3B8;font-size:12px;\">• ${s}</li>`).join('')\n      : '<li style=\"color:#94A3B8;font-size:12px;\">• No sources found</li>';\n    claimsHtml += `\n      <div style=\"background:#0F172A;border:1px solid #334155;border-left:4px solid ${cvs.color};border-radius:10px;padding:14px 18px;margin-bottom:10px;\">\n        <p style=\"margin:0 0 4px;font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.05em;\">Claim ${i + 1}</p>\n        <p style=\"margin:0 0 8px;font-size:14px;font-weight:600;color:#F8FAFC;\">&ldquo;${c.claim}&rdquo;</p>\n        <span style=\"background:${cvs.color}22;color:${cvs.color};font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;\">${cvs.emoji} ${cvs.label}</span>\n        <p style=\"margin:8px 0 8px;font-size:12px;color:#CBD5E1;line-height:1.5;\">${c.explanation}</p>\n        <ul style=\"margin:0;padding:0;list-style:none;\">${sourcesHtml}</ul>\n      </div>`;\n  });\n} else {\n  claimsHtml = `<p style=\"font-size:13px;color:#94A3B8;font-style:italic;\">No specific factual claims were identified in the input (e.g. it may be a topic name only).</p>`;\n}\n\n// ─── Warning flags HTML ───────────────────────────────────────────\nlet flagsHtml = '';\nif (Array.isArray(fc.warning_flags) && fc.warning_flags.length > 0) {\n  const items = fc.warning_flags.map(f => `<li style=\"margin:4px 0;color:#FCA5A5;font-size:13px;\">⚑ ${f}</li>`).join('');\n  flagsHtml = `<div style=\"background:#450A0A22;border:1px solid #EF444444;border-radius:10px;padding:14px 18px;\">\n    <p style=\"margin:0 0 6px;font-size:11px;color:#F87171;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;\">⚑ Warning Flags</p>\n    <ul style=\"margin:0;padding:0;list-style:none;\">${items}</ul>\n  </div>`;\n} else {\n  flagsHtml = `<p style=\"font-size:13px;color:#34D399;\">✓ No warning flags detected.</p>`;\n}\n\n// ─── Alert banner if issues found ────────────────────────────────\nconst issueBanner = fc.has_issues\n  ? `<div style=\"background:#451A0322;border:2px solid #F59E0B;border-radius:12px;padding:14px 20px;margin-bottom:20px;\">\n      <p style=\"margin:0;font-size:13px;color:#FCD34D;\"><strong>⚠️ Accuracy Warning:</strong> One or more claims in your notes were rated FALSE or MISLEADING. The study material below has been annotated with dispute markers. Please verify flagged points with primary sources before memorising.</p>\n    </div>`\n  : `<div style=\"background:#052E1622;border:2px solid #22C55E;border-radius:12px;padding:14px 20px;margin-bottom:20px;\">\n      <p style=\"margin:0;font-size:13px;color:#86EFAC;\"><strong>✅ Content Verified:</strong> No major factual issues were detected in your notes. Your study material is based on verified content.</p>\n    </div>`;\n\n// ─── Study material HTML ──────────────────────────────────────────\nlet studyHtml = '';\n\nfunction buildFlashcardsHtml(flashcards) {\n  if (!Array.isArray(flashcards) || flashcards.length === 0) return '<p style=\"color:#94A3B8;\">No flashcards generated.</p>';\n  return flashcards.map((f, i) => `\n    <div style=\"background:#0F172A;border:1px solid #334155;border-radius:10px;padding:14px 18px;margin-bottom:10px;\">\n      <p style=\"margin:0 0 6px;font-size:11px;color:#818CF8;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;\">Card ${i + 1}</p>\n      <p style=\"margin:0 0 8px;font-size:14px;font-weight:600;color:#F8FAFC;\">Q: ${f.question}</p>\n      <p style=\"margin:0;font-size:13px;color:#CBD5E1;line-height:1.5;\">A: ${f.answer}</p>\n    </div>`).join('');\n}\n\nfunction buildQuizHtml(quiz) {\n  if (!Array.isArray(quiz) || quiz.length === 0) return '<p style=\"color:#94A3B8;\">No quiz generated.</p>';\n  return quiz.map((q, i) => {\n    const optionsHtml = Object.entries(q.options || {}).map(([letter, text]) => {\n      const isCorrect = letter === q.correct_answer;\n      return `<li style=\"margin:4px 0;font-size:13px;color:${isCorrect ? '#34D399' : '#CBD5E1'};\">${letter}. ${text}${isCorrect ? ' ✓' : ''}</li>`;\n    }).join('');\n    return `\n      <div style=\"background:#0F172A;border:1px solid #334155;border-radius:10px;padding:14px 18px;margin-bottom:10px;\">\n        <p style=\"margin:0 0 8px;font-size:11px;color:#818CF8;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;\">Question ${i + 1}</p>\n        <p style=\"margin:0 0 10px;font-size:14px;font-weight:600;color:#F8FAFC;\">${q.question}</p>\n        <ul style=\"margin:0;padding:0;list-style:none;\">${optionsHtml}</ul>\n      </div>`;\n  }).join('');\n}\n\nfunction buildSummaryHtml(summary) {\n  if (!summary || summary.parse_error) return '<p style=\"color:#94A3B8;\">No summary generated.</p>';\n  const conceptsHtml = Array.isArray(summary.key_concepts)\n    ? summary.key_concepts.map(c => `<li style=\"margin:6px 0;\"><strong style=\"color:#A5B4FC;\">${c.term}:</strong> <span style=\"color:#CBD5E1;font-size:13px;\">${c.definition}</span></li>`).join('')\n    : '';\n  const takeawaysHtml = Array.isArray(summary.key_takeaways)\n    ? summary.key_takeaways.map(t => `<li style=\"margin:4px 0;color:#CBD5E1;font-size:13px;\">• ${t}</li>`).join('')\n    : '';\n  return `\n    <div style=\"background:#0F172A;border:1px solid #334155;border-radius:10px;padding:18px 20px;margin-bottom:12px;\">\n      <p style=\"margin:0 0 6px;font-size:11px;color:#818CF8;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;\">Topic</p>\n      <p style=\"margin:0 0 12px;font-size:18px;font-weight:700;color:#F8FAFC;\">${summary.topic || 'N/A'}</p>\n      <p style=\"margin:0 0 4px;font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;\">Overview</p>\n      <p style=\"margin:0 0 16px;font-size:13px;color:#CBD5E1;line-height:1.6;\">${summary.overview || ''}</p>\n      <p style=\"margin:0 0 8px;font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;\">Key Concepts</p>\n      <ul style=\"margin:0 0 16px;padding:0;list-style:none;\">${conceptsHtml}</ul>\n      <p style=\"margin:0 0 8px;font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;\">Key Takeaways</p>\n      <ul style=\"margin:0;padding:0;list-style:none;\">${takeawaysHtml}</ul>\n    </div>`;\n}\n\nif (outputType === 'Flashcards') {\n  studyHtml = `<p style=\"margin:0 0 12px;font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;\">📇 Flashcards</p>${buildFlashcardsHtml(studyData.flashcards)}`;\n} else if (outputType === 'Quiz') {\n  studyHtml = `<p style=\"margin:0 0 12px;font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;\">📝 Quiz</p>${buildQuizHtml(studyData.quiz)}`;\n} else if (outputType === 'Summary') {\n  studyHtml = `<p style=\"margin:0 0 12px;font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;\">📖 Summary</p>${buildSummaryHtml(studyData.summary)}`;\n} else if (outputType === 'All three') {\n  studyHtml = `\n    <p style=\"margin:0 0 12px;font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;\">📖 Summary</p>\n    ${buildSummaryHtml(studyData.summary)}\n    <p style=\"margin:20px 0 12px;font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;\">📇 Flashcards</p>\n    ${buildFlashcardsHtml(studyData.flashcards)}\n    <p style=\"margin:20px 0 12px;font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;\">📝 Quiz</p>\n    ${buildQuizHtml(studyData.quiz)}`;\n}\n\n// ─── Final email HTML ─────────────────────────────────────────────\nconst html = `\n<div style=\"font-family:'Inter','Segoe UI',Roboto,sans-serif;background:#0F172A;padding:32px 20px;\">\n  <div style=\"max-width:640px;margin:0 auto;background:#1E293B;border-radius:24px;overflow:hidden;border:1px solid #334155;\">\n\n    <!-- Header -->\n    <div style=\"background:linear-gradient(135deg,#1E1B4B 0%,#312E81 100%);padding:36px 30px;text-align:center;border-bottom:1px solid #818CF833;\">\n      <span style=\"display:inline-block;background:rgba(255,255,255,0.1);padding:6px 14px;border-radius:100px;margin-bottom:14px;color:#A5B4FC;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;\">AI Study Assistant + Fact-Checker</span>\n      <h1 style=\"margin:0;color:#fff;font-size:22px;font-weight:700;\">Your Verified Study Material</h1>\n      <p style=\"margin:6px 0 0;color:#C7D2FE;font-size:13px;\">Fact-checked before generation</p>\n    </div>\n\n    <div style=\"padding:32px 30px;color:#E2E8F0;line-height:1.6;\">\n\n      <!-- Issue Banner -->\n      ${issueBanner}\n\n      <!-- Fact-Check Section -->\n      <p style=\"margin:0 0 12px;font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;\">🔍 Fact-Check Report</p>\n\n      <div style=\"background:#0F172A;border:2px solid ${vs.color}44;border-radius:14px;padding:20px;text-align:center;margin-bottom:20px;\">\n        <p style=\"margin:0 0 4px;font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:0.08em;\">Overall Verdict</p>\n        <p style=\"margin:0 0 6px;font-size:28px;\">${vs.emoji}</p>\n        <p style=\"margin:0 0 10px;font-size:18px;font-weight:700;color:${vs.color};\">${vs.label}</p>\n        <p style=\"margin:0 0 12px;font-size:13px;color:#CBD5E1;max-width:460px;margin-left:auto;margin-right:auto;\">${fc.summary}</p>\n        <p style=\"margin:0 0 4px;font-size:12px;color:#64748B;\">Confidence: <strong style=\"color:#F8FAFC;\">${score}%</strong></p>\n        <p style=\"margin:0;font-size:12px;color:${vs.color};letter-spacing:1px;font-family:monospace;\">${bar}</p>\n      </div>\n\n      <p style=\"margin:0 0 10px;font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;\">Claims Analysed</p>\n      ${claimsHtml}\n\n      <p style=\"margin:16px 0 10px;font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;\">Warning Flags</p>\n      ${flagsHtml}\n\n      <div style=\"border-top:1px solid #334155;margin:28px 0;\"></div>\n\n      <!-- Study Material Section -->\n      ${studyHtml}\n\n      <!-- Disclaimer -->\n      <div style=\"margin-top:24px;padding:14px 16px;background:rgba(129,140,248,0.05);border-left:4px solid #6366F1;border-radius:4px;\">\n        <p style=\"margin:0;font-size:12px;color:#C7D2FE;font-style:italic;\"><strong>Note:</strong> This report is AI-generated. The fact-check uses real-time web search but is not infallible. Always verify critical claims with primary academic sources.</p>\n      </div>\n    </div>\n\n    <!-- Footer -->\n    <div style=\"background:#161E2E;padding:16px;text-align:center;font-size:11px;color:#64748B;border-top:1px solid #334155;letter-spacing:0.5px;\">\n      SENT VIA <strong style=\"color:#94A3B8;\">AI STUDY ASSISTANT + FACT-CHECKER</strong>\n    </div>\n  </div>\n</div>`;\n\nreturn [{\n  json: {\n    formatted_html: html,\n    study_raw_output: studyRaw,\n    fact_overall_verdict: fc.overall_verdict,\n    fact_confidence_score: fc.confidence_score,\n    fact_has_issues: fc.has_issues,\n    fact_summary: fc.summary,\n    output_type: outputType,\n    student_name: formData['Full name'],\n    student_email: formData['Email address'],\n    topic_snippet: formData['Topic or lecture notes'].slice(0, 120)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        592
+      ],
+      "id": "d1d772d1-8ff7-4d47-9fc0-24d57b7d19df",
+      "name": "Format Combined Output"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1vTlQBy4CznNjcNGR04b7EviWtjb4dyMdMF37Q-jd_3A",
+          "mode": "list",
+          "cachedResultName": "Study + Fact-Check Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1vTlQBy4CznNjcNGR04b7EviWtjb4dyMdMF37Q-jd_3A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1vTlQBy4CznNjcNGR04b7EviWtjb4dyMdMF37Q-jd_3A/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "formatted_html",
+              "displayName": "formatted_html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "study_raw_output",
+              "displayName": "study_raw_output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fact_overall_verdict",
+              "displayName": "fact_overall_verdict",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fact_confidence_score",
+              "displayName": "fact_confidence_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fact_has_issues",
+              "displayName": "fact_has_issues",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fact_summary",
+              "displayName": "fact_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "output_type",
+              "displayName": "output_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "student_name",
+              "displayName": "student_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "student_email",
+              "displayName": "student_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "topic_snippet",
+              "displayName": "topic_snippet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        144,
+        592
+      ],
+      "id": "e020f594-7da3-4171-aa70-97a92a6361f0",
+      "name": "Save to Study + Fact-Check Log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bjKbnPAtxyhYEJxY",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.student_email }}",
+        "subject": "=Your Verified Study Material — {{ $json.topic_snippet }}...",
+        "message": "={{ $json.formatted_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        592
+      ],
+      "id": "d101ba8c-a6f5-4780-a6f7-ada050b3ddce",
+      "name": "Email Study + Fact-Check Report",
+      "webhookId": "study-fc-email-001",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "JfQhLEKkwaZjkDck",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=TOPIC / LECTURE NOTES:\n{{ $json['topic_notes'] }}\n\nFACT-CHECK CONTEXT (use this to avoid generating questions based on disputed facts):\nOverall Verdict: {{ $json['fact_overall_verdict'] }}\nSummary: {{ $json['fact_summary'] }}\nIssues Found: {{ $json['fact_has_issues'] }}\nClaims Detail: {{ $json['fact_claims'] }}\nWarning Flags: {{ $json['fact_warning_flags'] }}",
+        "options": {
+          "systemMessage": "# Role\nYou are an expert study assistant for university students.\n\n# Goal\nGenerate a 5-question multiple-choice quiz from the provided topic or lecture notes.\n\n# Important\nIf the fact-check context shows Issues Found = true, do NOT generate quiz questions that rely on claims rated FALSE or MISLEADING — skip those claims and draw from verified content only. If you must reference a disputed area, add '(Note: this claim is disputed — check sources)' to the question text.\n\n# Instructions\n1. Write 5 multiple-choice questions testing genuine understanding.\n2. Each question must have 4 options (A, B, C, D) and exactly one correct answer.\n3. Output MUST be only a valid JSON object with a single key 'quiz' containing an array of 5 objects, each with keys: 'question', 'options' (object with keys A/B/C/D), and 'correct_answer' (the letter).\n4. No preamble, no markdown, no explanation outside the JSON. Do NOT include <think> blocks or any reasoning text.\n\n# Today's Date: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -432,
+        496
+      ],
+      "id": "54bea53d-1e50-44bd-b095-5832a927fd87",
+      "name": "Generate Quiz"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=TOPIC / LECTURE NOTES:\n{{ $json['topic_notes'] }}\n\nFACT-CHECK CONTEXT:\nOverall Verdict: {{ $json['fact_overall_verdict'] }}\nSummary: {{ $json['fact_summary'] }}\nIssues Found: {{ $json['fact_has_issues'] }}\nClaims Detail: {{ $json['fact_claims'] }}\nWarning Flags: {{ $json['fact_warning_flags'] }}",
+        "options": {
+          "systemMessage": "# Role\nYou are an expert study assistant for university students.\n\n# Goal\nGenerate flashcards, a quiz, AND a summary — all in one response.\n\n# Important\n- In flashcard answers, add '[⚠️ Disputed — verify with primary source]' next to any content flagged as FALSE or MISLEADING by the fact-checker.\n- In quiz questions, avoid basing questions on disputed claims. If you must, add '(Note: this claim is disputed)' to the question.\n- In summary key concepts and takeaways, add '⚠️ Disputed' tags where relevant.\n\n# Instructions\n1. Output MUST be only a valid JSON object with three top-level keys: 'flashcards', 'quiz', and 'summary'.\n\n'flashcards': array of 10 objects with keys 'question' and 'answer'.\n\n'quiz': array of 5 objects with keys 'question', 'options' (object with keys A/B/C/D), and 'correct_answer' (letter).\n\n'summary': object with keys:\n  - 'topic': short string\n  - 'overview': 2-3 sentence explanation\n  - 'key_concepts': array of objects with 'term' and 'definition'\n  - 'key_takeaways': array of 3-5 short strings\n\n2. No preamble, no markdown, no explanation outside the JSON. Do NOT include <think> blocks or any reasoning text.\n\n# Today's Date: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -432,
+        880
+      ],
+      "id": "bcb754bb-4c64-468e-9cff-b53d7e44927e",
+      "name": "Generate All Three"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Fact-Checker Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fact-Checker Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse Fact-Check Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Fact-Check Result": {
+      "main": [
+        [
+          {
+            "node": "Route by output type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by output type": {
+      "main": [
+        [
+          {
+            "node": "Generate Flashcards",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Quiz",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate All Three",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Flashcards": {
+      "main": [
+        [
+          {
+            "node": "Format Combined Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Summary": {
+      "main": [
+        [
+          {
+            "node": "Format Combined Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Combined Output": {
+      "main": [
+        [
+          {
+            "node": "Save to Study + Fact-Check Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Study + Fact-Check Log": {
+      "main": [
+        [
+          {
+            "node": "Email Study + Fact-Check Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpApi": {
+      "ai_tool": [
+        [
+          {
+            "node": "Fact-Checker Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Model (Fact-Check)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Fact-Checker Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Model (Study)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Flashcards",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Summary",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Quiz",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate All Three",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Quiz": {
+      "main": [
+        [
+          {
+            "node": "Format Combined Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate All Three": {
+      "main": [
+        [
+          {
+            "node": "Format Combined Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "424c37f7-c662-4202-bbfb-23c4a7ba027d",
+  "meta": {
+    "instanceId": "39cce0f4abd24e636f94ffbe5a0f8b900e962fb7eb869ff9a8412ffaf47fdd51"
+  },
+  "id": "5Tuz3dOFkrpkNhG1",
+  "tags": []
+}
